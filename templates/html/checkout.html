@@ -34,14 +34,15 @@
                     <hr>
                     <input id="form-button" class="btn btn-success btn-block" type="submit" value="Continue">
                 </form>
-
 		    </div>
-		
+            <br>
+            <div class="box-element hidden" id="payment-info">
+                <small>Paypal Options</small>
+                <button id="make-payment">Make Payment</button>
+            </div> 
 	    </div>
-        <br>
-        <div class="box-element hidden" id="payment-info">
-            <small>Paypal Options</small>
-        </div>
+        
+        
 
 	<div class="col-lg-6">
 		<div class="box-element">
@@ -62,4 +63,82 @@
         </div>
 	</div>
     </div>
+    <script type="text/javascript">
+
+        var Shipping='{{order.shipping}}'
+        var total='{{order.get_cart_item}}'
+
+        if(Shipping=='False'){
+            document.getElementById('shipping-info').innerHTML= ''
+        }
+        if (user != 'AnonymousUser'){
+            document.getElementById('user-info').innerHTML=''
+        }
+
+        if (Shipping=='False' && user != 'AnonymousUser'){
+            document.getElementById('form-wrapper').classList.add('hidden');
+            document.getElementById('payment-info').classList.remove("hidden");
+        }
+        
+        var form=document.getElementById('form')
+        form.addEventListener('submit' , function(e){
+            e.preventDefault()
+            console.log('form sumbited ........................')
+            document.getElementById('form-button').classList.add("hidden");
+            document.getElementById('payment-info').classList.remove("hidden");
+        })
+
+        document.getElementById('make-payment').addEventListener('click',function(e){
+            sumitFormdata()
+        })
+        function sumitFormdata(){
+            console.log('payment button clicked')
+
+            var userFormData={
+                'name':null,
+                'email':null,
+                'total':total
+            }
+
+            var ShippingInfo={
+                'address':null,
+                'city':null,
+                'state':null,
+                'zipcode':null,
+                
+            }
+            if (Shipping != 'False'){
+                ShippingInfo.address=form.address.value
+                ShippingInfo.city=form.city.value
+                ShippingInfo.state=form.state.value
+                ShippingInfo.zipcode=form.zipcode.value
+    
+            }
+    
+            if (user == 'AnonymousUser'){
+                userFormData.name=form.name.value
+                userFormData.email=form.email.value
+                
+            }
+            console.log('shipping info:',ShippingInfo)
+            console.log('user info',userFormData)
+            var url='/process_order/'
+
+            fetch(url,{
+                method:'POST',
+                headers:{
+                    'content-type':'application/json',
+                    'X-CSRFToken' : csrftoken,
+                },
+                body:JSON.stringify({'form':userFormData, 'shipping':ShippingInfo}),
+            })
+            .then((response) => response.json())
+            .then((data)=>{
+                console.log('success',data);
+                alert('transaction camplete');
+                window.location.href="{% url 'homepage' %}"
+            })
+        }
+        
+    </script>
 {% endblock content %}
