@@ -69,27 +69,29 @@ def updateItem(request):
         
     return JsonResponse('Item was added',safe=False)
 def processOrder(request):
-    transcation_id=datetime.datetime.now().timestamp()
-    data=json.loads(request.body)
+    transaction_id = datetime.datetime.now().timestamp()
+    data = json.loads(request.body)
+
     if request.user.is_authenticated:
-        customer= request.user.customer
-        order,created=Order.objects.get_or_create(customer=customer, complete=False)
+        customer = request.user.customer
+        order, created = Order.objects.get_or_create(customer=customer, complete=False)
         total = float(data['form']['total'])
-        order.transcation_id=transcation_id
-        
+        order.transaction_id = transaction_id
+
         if total == order.get_cart_total:
             order.complete = True
         order.save()
-        
-        if order.shipping==True:
+
+        if order.shipping == True:
             ShippingAddress.objects.create(
-                customer=customer,
-                order=order,
-                address=data['shipping']['address'],
-                city=data['shipping']['city'],
-                state=data['shipping']['state'],
-                zipcode=data['shipping']['zipcode'],
-            )
+			customer=customer,
+			order=order,
+			address=data['shipping']['address'],
+			city=data['shipping']['city'],
+			state=data['shipping']['state'],
+			zipcode=data['shipping']['zipcode'],
+			)
     else:
-        print('user is not loged in ......................')
-    return JsonResponse('payment sumitted',safe=False)
+     print('User is not logged in')
+
+    return JsonResponse('Payment submitted..', safe=False)
